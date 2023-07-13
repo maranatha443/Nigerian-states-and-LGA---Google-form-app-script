@@ -1,0 +1,46 @@
+const FORM_URL = "https://docs.google.com/forms/d/16Ood5MJcIUJaxbo-oz2tosH-sQ2h4hki4FJYt-Glmuo/edit"
+
+let form = FormApp.openByUrl(FORM_URL)
+const Sheet_URL = "https://docs.google.com/spreadsheets/d/1HPT9hn3NTFnRootXwOrhAS761CBU2yElMTHTKftx3_k/edit?resourcekey#gid=1567268816"
+
+// Function to clear form
+function clearForm() {
+
+  let items = form.getItems()
+  items.forEach(item=>form.deleteItem(item))
+}
+
+
+// Creates conditional sections linked to one another
+function createConditionalForm() {
+ let ws = SpreadsheetApp.openByUrl(Sheet_URL)
+ let ss = ws.getSheetByName("Locations")
+ let table = ss.getDataRange().getValues()
+  table.shift()
+  let stateOptions = table.map(row=>row[0])
+  let singleStateOptions = []
+  stateOptions.forEach(option=>{
+    if(singleStateOptions.indexOf(option)==-1)
+  singleStateOptions.push(option)
+  })
+
+  let locationQuestion = form.addMultipleChoiceItem().setTitle("State of Residence")
+
+   let finalStateOptions = []
+
+   singleStateOptions.forEach(stateOption=>{
+
+     let section = form.addPageBreakItem().setTitle(stateOption)
+     section.setGoToPage(FormApp.PageNavigationType.CONTINUE)
+     let lgaquestion = form.addMultipleChoiceItem().setTitle(stateOption)
+     let lgaOptions = table.filter(option=>option[0]==stateOption).map(row=>row[1])
+
+     lgaquestion.setChoiceValues(lgaOptions)
+     let stateChoice = locationQuestion.createChoice(stateOption, section)
+
+     finalStateOptions.push(stateChoice)
+   })
+
+   locationQuestion.setChoices(finalStateOptions)
+
+}
